@@ -1,6 +1,10 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+try:
+    from pyperclip import copy
+except ImportError:
+    pass
 
 __version__ = "0.1.0"
 from main_ui import Ui_MainWindow
@@ -19,6 +23,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.EnableCrashRisk.stateChanged.connect(self.CrashRiskCheckboxChanged)
         self.Compute.clicked.connect(self.ComputeData)
         self.ClearAll.clicked.connect(self.ClearAllData)
+        self.CopyResult.clicked.connect(self.CopyToClipboard)
     
     def ChoiceDropWhenFull(self):
         """选择满仓抛矿时，调整其它满仓策略的数据输入框可用性
@@ -105,7 +110,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def ComputeData(self):
         input_data = self.GetAllData()
-        print(input_data)
         
         for key, value in input_data.items():
             # 除加成比例以外的其它数据不能为空
@@ -153,6 +157,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ProfitPerHourTheoretical.setText(str(ProfitPerHourTheoretical) + " ISK")
         self.CrashRiskToMoney.setText(str(CrashRiskToMoney) + " ISK")
         self.RealProfitPerHour.setText(str(RealProfitPerHour) + " ISK")
+    
+    def CopyToClipboard(self):
+        try:
+            copy("")
+        except NameError:
+            QMessageBox.critical(self, "依赖错误", "依赖库 PyPerclip 没有正确安装，该功能不可用")
+            return
+        
+        if not self.TimePerMining.text():  # 没有计算结果
+            QMessageBox.warning(self, "复制失败", "请先计算结果后再复制")
+            return
+        
+        str_to_copy = ""
+        data_to_copy = {}
+        data_to_copy["矿石体积"] = str(self.OreVolume.value()) + " m³"
+        data_to_copy["矿石价值"] = str(self.OrePrice.value()) + " ISK"
+        data_to_copy["舰船价值"] = str(self.ShipPrice.value()) + " ISK"
+        data_to_copy["舰船容量"] = str(self.ShipCapacity.value()) + " m³"
+        if self.EnableCrashRisk.isChecked():
+            data_to_copy["预估爆船率"] = str(self.CrashProbability.value() * 100) + "%"
+            data_to_copy["爆船矿物损失率"] = str(self.CrashOreLostProportion.value() * 100) + "%"
+        data_to_copy["单次循环开采量"] = str(self.MiningCountPerCycle.text())
+        data_to_copy["单次循环时间"] = str(self.TimePerCycle.text())
+        data_to_copy["每仓开采耗时"] = str(self.TimePerMining.text())
+        data_to_copy["每小时可开采"] = str(self.CyclesCountPerHour.text())
+        data_to_copy["每秒开采量"] = str(self.MiningCountPerSecond.text())
+        data_to_copy["每小时开采量"] = str(self.MiningCountPerSecond.text())
+        data_to_copy["每小时收益"] = str(self.RealProfitPerHour.text())
+
+        str_to_copy += "EVE 采矿方案：\n"
+        
+        for key, value in data_to_copy.items():
+            str_to_copy += "".join([key, "：", value, "\n"])  # 使用 join 提高效率
+        
+        copy(str_to_copy)
+        QMessageBox.information(self, "复制成功", "采矿方案已复制到剪贴板")
         
 app = QApplication(sys.argv)
 main = MainWindow()
