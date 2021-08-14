@@ -9,6 +9,25 @@ except ImportError:
 __version__ = "0.1.0"
 from main_ui import Ui_MainWindow
 
+ore_data = {
+    "未知": 0.00, 
+    "凡晶石": 0.1, 
+    "灼烧岩": 0.15, 
+    "干焦岩": 1.5, 
+    "斜长岩": 0.35, 
+    "奥贝尔石": 0.6, 
+    "水硼砂": 1.2, 
+    "杰斯贝矿": 4.0, 
+    "希莫非特": 3.0, 
+    "同位原矿": 3.0, 
+    "灰岩": 3.2, 
+    "黑赭石": 1.6, 
+    "片麻岩": 2.0, 
+    "克洛基石": 6.4, 
+    "双多特石": 6.4, 
+    "艾克诺岩": 6.4, 
+    "基腹断岩": 8.0 
+}
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -16,7 +35,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         
         self.Version.setText(__version__)  # 显示版本号信息
+        self.OreType.addItems(ore_data.keys())  # 将矿石信息添加到下拉框中
         
+        self.OreType.currentTextChanged.connect(self.OreTypeChanged)  # 矿石种类变更时更新体积信息
+        self.OreDataSettings.clicked.connect(self.OreDataManage)
         self.DropOreWhenFull.clicked.connect(self.ChoiceDropWhenFull)
         self.SaveOreWhenFull.clicked.connect(self.ChoiceSaveWhenFull)
         self.SellOreWhenFull.clicked.connect(self.ChoiceSellWhenFull)
@@ -24,6 +46,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.Compute.clicked.connect(self.ComputeData)
         self.ClearAll.clicked.connect(self.ClearAllData)
         self.CopyResult.clicked.connect(self.CopyToClipboard)
+    
+    def OreTypeChanged(self):
+        now_type = self.OreType.currentText()
+        self.OreVolume.setValue(ore_data[now_type])
+        
+    def OreDataManage(self):
+        QMessageBox.information(self, "开发中", "该功能正在努力 Coding 中，敬请期待")
     
     def ChoiceDropWhenFull(self):
         """选择满仓抛矿时，调整其它满仓策略的数据输入框可用性
@@ -171,6 +200,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         str_to_copy = ""
         data_to_copy = {}
+        data_to_copy["矿石种类"] = str(self.OreType.currentText())
         data_to_copy["矿石体积"] = str(self.OreVolume.value()) + " m³"
         data_to_copy["矿石价值"] = str(self.OrePrice.value()) + " ISK"
         data_to_copy["舰船价值"] = str(self.ShipPrice.value()) + " ISK"
