@@ -1,13 +1,15 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
+
+from main_ui import Ui_MainWindow
+
 try:
     from pyperclip import copy
 except ImportError:
     pass
 
 __version__ = "0.1.0"
-from main_ui import Ui_MainWindow
 
 ore_data = {
     "未知": 0.00, 
